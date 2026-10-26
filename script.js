@@ -35,7 +35,7 @@ document.getElementById("brand-link").addEventListener("click", (event) => {
 const chapters = [
   {
     label: "WHAT YOU MEAN TO ME",
-    title: "My favorite Dragon,",
+    title: "My Dragon,",
     paragraphs: [
       "Sometimes, I find myself wondering how one person can mean so much to me. How one person can be so many things at once. How someone can be my comfort, my happiness, my warmth, my peace, and sometimes, the very person who makes me want to pull my hair out when we're arguing.(WHAHAHAHAHA KA CORNY PERO MWA). But somehow, even with all those things, you remain my favorite person in this world. And I don't think words will ever be enough to explain just how much you mean to me, baba.",
       "You are such a beautiful person babuu, inside and out. And when I say beautiful, I don't mean just the kind of beauty that catches someone's eyes. I mean the kind that stays with someone, the kind that makes a person want to know you more, understand you more, and love you in all the ways you deserve to be loved. You have such a soft and gentle soul, such a big heart, and a way of caring that makes people feel seen and understood. You're an empath, someone who feels deeply, someone who carries so much in that heart of yours. And I hope you know how precious that is. I hope the world never makes you believe that your softness is something you need to hide, because to me, it is one of the most beautiful things about you, my baba Jirah.",
@@ -217,15 +217,6 @@ nextChapterButton.addEventListener("click", () => {
 
 const TOTAL_PHOTOS = 153;
 const photoGrid = document.getElementById("photo-grid");
-const albumStatus = document.getElementById("album-status");
-
-const photoPaths = Array.from(
-  { length: TOTAL_PHOTOS },
-  (_, index) => {
-    const number = String(index + 1).padStart(3, "0");
-    return `assets/photos/photo-${number}.jpg`;
-  }
-);
 
 // Each photo may be JPG, JPEG, or PNG. The browser tries each extension.
 const PHOTO_EXTENSIONS = ["jpg", "jpeg", "png"];
@@ -233,10 +224,6 @@ const PHOTO_EXTENSIONS = ["jpg", "jpeg", "png"];
 function loadPhotoWithFallback(img, index, onFailure) {
   const number = String(index + 1).padStart(3, "0");
   let extensionIndex = 0;
-
-  img.onload = () => {
-    photoPaths[index] = `assets/photos/photo-${number}.${PHOTO_EXTENSIONS[extensionIndex]}`;
-  };
 
   img.onerror = () => {
     extensionIndex++;
@@ -250,27 +237,25 @@ function loadPhotoWithFallback(img, index, onFailure) {
   img.src = `assets/photos/photo-${number}.${PHOTO_EXTENSIONS[extensionIndex]}`;
 }
 
-let missingPhotos = 0;
-
 // Organize all 153 photos into three scrapbook-style collections.
 const collections = [
   {
-    title: "Our memories",
-    subtitle: "Our story",
+    title: "Little moments",
+    subtitle: "The little things that mean so much",
     start: 0,
     end: 51,
     style: "collection-blush"
   },
   {
     title: "Our memories",
-    subtitle: "Our story",
+    subtitle: "Pieces of our story, kept forever",
     start: 51,
     end: 102,
     style: "collection-gray"
   },
   {
-    title: "Our memories",
-    subtitle: "Our story",
+    title: "My favorite person",
+    subtitle: "A little reminder of how special you are",
     start: 102,
     end: 153,
     style: "collection-rose"
@@ -309,10 +294,9 @@ collections.forEach((collection) => {
 
   for (let index = collection.start; index < collection.end; index++) {
     const number = index + 1;
-    const src = photoPaths[index];
 
     const tile = document.createElement("button");
-    tile.className = "photo-tile";
+    tile.className = "photo-tile flip-tile";
     tile.type = "button";
     tile.setAttribute(
       "aria-label",
@@ -333,9 +317,7 @@ collections.forEach((collection) => {
     loadPhotoWithFallback(img, index, () => {
       img.hidden = true;
       fallback.hidden = false;
-      missingPhotos++;
-      // Keep the album clean; do not display a photo-count status.
-      if (albumStatus) albumStatus.textContent = "";
+      // Keep the scrapbook layout clean if a file is missing.
     });
 
     // No numbered badge: the photos are presented as an album, not a gallery index.
@@ -366,10 +348,8 @@ let currentPhotoIndex = 0;
 let previousFocus = null;
 let touchStartX = 0;
 let touchStartY = 0;
-let viewerImageFailed = false;
 
 function updateViewer() {
-  viewerImageFailed = false;
   viewerImage.hidden = false;
   viewerPlaceholder.hidden = true;
 
@@ -393,6 +373,9 @@ function openPhoto(index, clickedElement) {
 
   updateViewer();
   viewer.hidden = false;
+  viewer.classList.remove("is-opening");
+  void viewer.offsetWidth;
+  viewer.classList.add("is-opening");
   document.body.classList.add("viewer-open");
   document.body.style.overflow = "hidden";
 
@@ -417,6 +400,9 @@ function movePhoto(direction) {
 
   currentPhotoIndex = nextIndex;
   updateViewer();
+  viewer.classList.remove("is-opening");
+  void viewer.offsetWidth;
+  viewer.classList.add("is-opening");
 }
 
 // loadPhotoWithFallback handles alternate extensions for the viewer image.
@@ -498,9 +484,6 @@ document.getElementById("replay-button").addEventListener("click", () => {
   currentChapter = 0;
   renderChapter();
 
-  document.querySelectorAll(".memory-card").forEach((card) => {
-    card.setAttribute("aria-expanded", "false");
-  });
 
   giftMessage.hidden = true;
   document.body.classList.remove("gift-open");
@@ -513,42 +496,82 @@ document.getElementById("replay-button").addEventListener("click", () => {
 });
 
 // --------------------------------------------------
-// OPTIONAL BACKGROUND MUSIC
+// BACKGROUND MUSIC
+// Try autoplay first; browsers may require the visitor's first interaction.
 // --------------------------------------------------
 
 const music = document.getElementById("background-music");
 const musicToggle = document.getElementById("music-toggle");
+let autoplayGestureBound = false;
 
 function syncMusicButton() {
+  if (!music || !musicToggle) return;
   const playing = !music.paused;
-
   musicToggle.textContent = playing ? "♫ Music On" : "♫ Music Off";
   musicToggle.setAttribute("aria-pressed", String(playing));
 }
 
-musicToggle.addEventListener("click", async () => {
-  if (music.paused) {
-    try {
-      await music.play();
-      syncMusicButton();
-    } catch (error) {
-      musicToggle.textContent = "♫ Music unavailable";
-      console.error("Music could not be played:", error);
-    }
-  } else {
-    music.pause();
+async function tryStartMusic(event) {
+  // Let the dedicated music button handle its own play/pause click.
+  if (event?.target instanceof Element && event.target.closest("#music-toggle")) return;
+  if (!music || !music.paused) return;
+  try {
+    await music.play();
     syncMusicButton();
+    removeAutoplayGesture();
+  } catch (_error) {
+    // Audible autoplay is commonly blocked until a user gesture; retry once
+    // from the next real interaction without interrupting the experience.
+    syncMusicButton();
+    bindAutoplayGesture();
   }
-});
+}
 
-music.addEventListener("pause", syncMusicButton);
-music.addEventListener("play", syncMusicButton);
+function removeAutoplayGesture() {
+  if (!autoplayGestureBound) return;
+  document.removeEventListener("pointerdown", tryStartMusic);
+  document.removeEventListener("keydown", tryStartMusic);
+  autoplayGestureBound = false;
+}
 
-music.addEventListener("error", () => {
-  if (musicToggle.getAttribute("aria-pressed") !== "true") {
-    musicToggle.textContent = "♫ Music Off";
+function bindAutoplayGesture() {
+  if (autoplayGestureBound || !music || !music.paused) return;
+  autoplayGestureBound = true;
+  document.addEventListener("pointerdown", tryStartMusic);
+  document.addEventListener("keydown", tryStartMusic);
+}
+
+if (music && musicToggle) {
+  musicToggle.addEventListener("click", async () => {
+    if (music.paused) {
+      try {
+        await music.play();
+        syncMusicButton();
+        removeAutoplayGesture();
+      } catch (_error) {
+        musicToggle.textContent = "♫ Tap to play music";
+        bindAutoplayGesture();
+      }
+    } else {
+      music.pause();
+      syncMusicButton();
+    }
+  });
+
+  music.addEventListener("pause", syncMusicButton);
+  music.addEventListener("play", syncMusicButton);
+  music.addEventListener("error", () => {
+    musicToggle.textContent = "♫ Music unavailable";
+    musicToggle.setAttribute("aria-pressed", "false");
+  });
+
+  // Calling play on load enables autoplay where browser policy allows it.
+  if (document.readyState === "complete") {
+    tryStartMusic();
+  } else {
+    window.addEventListener("load", tryStartMusic, { once: true });
   }
-});
+}
 
 // Start at the welcome screen.
 showScreen("welcome");
