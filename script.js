@@ -12,6 +12,7 @@ function showScreen(id) {
   });
 
   document.body.dataset.atmosphere = id;
+  if (id === "album") resetScrapbook();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -237,7 +238,8 @@ function loadPhotoWithFallback(img, index, onFailure) {
   img.src = `assets/photos/photo-${number}.${PHOTO_EXTENSIONS[extensionIndex]}`;
 }
 
-// Organize all 153 photos into three scrapbook-style collections.
+// Organize all 153 photos into six readable scrapbook pages (25–26 photos each).
+// The cover and closing page frame the photo pages like a little journal.
 const collections = [
   {
     title: "Little moments",
@@ -262,74 +264,171 @@ const collections = [
   }
 ];
 
-collections.forEach((collection) => {
-  const section = document.createElement("section");
-  section.className = `photo-collection ${collection.style}`;
+const scrapbookPages = [];
+const scrapbookCover = document.createElement("section");
+scrapbookCover.className = "scrapbook-cover scrapbook-page";
+scrapbookCover.setAttribute("aria-label", "Scrapbook cover");
+scrapbookCover.innerHTML = `
+  <span class="scrapbook-sticker scrapbook-sticker--top" aria-hidden="true">♡</span>
+  <span class="scrapbook-flower scrapbook-flower--left" aria-hidden="true">🌺</span>
+  <span class="scrapbook-flower scrapbook-flower--right" aria-hidden="true">🪷</span>
+  <p class="scrapbook-kicker">A LITTLE BOOK OF US</p>
+  <h2>Our little <em>forever</em></h2>
+  <p class="scrapbook-handwriting">A hundred little moments, one favorite person.</p>
+  <div class="cover-polaroids" aria-hidden="true"><span>♡</span><span>✿</span><span>♡</span></div>
+  <p class="scrapbook-cover-note">Made with love, for my Baba Jirah.</p>
+  <button class="primary-button scrapbook-nav-button" type="button" data-scrapbook-next>Open our scrapbook <span aria-hidden="true">→</span></button>
+`;
+photoGrid.appendChild(scrapbookCover);
 
-  const heading = document.createElement("div");
-  heading.className = "collection-heading";
+collections.forEach((collection, collectionIndex) => {
+  const middle = collection.start + 26;
+  const ranges = [
+    { start: collection.start, end: Math.min(middle, collection.end), pagePart: 1 },
+    { start: Math.min(middle, collection.end), end: collection.end, pagePart: 2 }
+  ];
 
-  const heart = document.createElement("span");
-  heart.className = "collection-heart";
-  heart.setAttribute("aria-hidden", "true");
-  heart.textContent = "♡";
+  ranges.forEach((range) => {
+    if (range.start >= range.end) return;
 
-  const headingText = document.createElement("div");
-  const title = document.createElement("h3");
-  title.textContent = collection.title;
+    const section = document.createElement("section");
+    section.className = `photo-collection scrapbook-page ${collection.style}`;
+    section.setAttribute("aria-label", `${collection.title}, page ${range.pagePart} of 2`);
+    section.hidden = true;
 
-  const subtitle = document.createElement("p");
-  subtitle.textContent = collection.subtitle;
+    const pageTop = document.createElement("div");
+    pageTop.className = "scrapbook-page-top";
+    pageTop.innerHTML = `<span>J + C</span><span class="scrapbook-page-sparkle" aria-hidden="true">✧ ♡ ✧</span><span>KEPT WITH LOVE</span>`;
 
-  headingText.append(title, subtitle);
+    const heading = document.createElement("div");
+    heading.className = "collection-heading";
 
-  const line = document.createElement("span");
-  line.className = "collection-line";
-  line.setAttribute("aria-hidden", "true");
+    const heart = document.createElement("span");
+    heart.className = "collection-heart";
+    heart.setAttribute("aria-hidden", "true");
+    heart.textContent = "♡";
 
-  heading.append(heart, headingText, line);
+    const headingText = document.createElement("div");
+    const title = document.createElement("h3");
+    title.textContent = collection.title;
 
-  const grid = document.createElement("div");
-  grid.className = "photo-grid collection-grid";
+    const subtitle = document.createElement("p");
+    subtitle.textContent = collection.subtitle;
 
-  for (let index = collection.start; index < collection.end; index++) {
-    const number = index + 1;
+    headingText.append(title, subtitle);
 
-    const tile = document.createElement("button");
-    tile.className = "photo-tile flip-tile";
-    tile.type = "button";
-    tile.setAttribute(
-      "aria-label",
-      `View photo ${number} of ${TOTAL_PHOTOS}`
-    );
+    const line = document.createElement("span");
+    line.className = "collection-line";
+    line.setAttribute("aria-hidden", "true");
+    heading.append(heart, headingText, line);
 
-    const img = document.createElement("img");
-    img.alt = `Photo ${number}`;
-    img.loading = "lazy";
-    img.decoding = "async";
+    const note = document.createElement("p");
+    note.className = "scrapbook-margin-note";
+    note.textContent = collectionIndex === 0
+      ? "the little things are the big things ♡"
+      : collectionIndex === 1
+        ? "my favorite place is beside you"
+        : "if i could keep a moment, i'd keep this one";
 
-    const fallback = document.createElement("span");
-    fallback.className = "photo-fallback";
-    fallback.textContent = "♡";
-    fallback.hidden = true;
-    fallback.setAttribute("aria-hidden", "true");
+    const grid = document.createElement("div");
+    grid.className = "photo-grid collection-grid scrapbook-photo-grid";
 
-    loadPhotoWithFallback(img, index, () => {
-      img.hidden = true;
-      fallback.hidden = false;
-      // Keep the scrapbook layout clean if a file is missing.
-    });
+    for (let index = range.start; index < range.end; index++) {
+      const number = index + 1;
+      const tile = document.createElement("button");
+      tile.className = "photo-tile flip-tile";
+      tile.type = "button";
+      tile.setAttribute("aria-label", `View memory photo ${number}`);
 
-    // No numbered badge: the photos are presented as an album, not a gallery index.
-    tile.append(img, fallback);
-    tile.addEventListener("click", () => openPhoto(index, tile));
-    grid.appendChild(tile);
-  }
+      const img = document.createElement("img");
+      img.alt = `A memory of us, photo ${number}`;
+      img.loading = "lazy";
+      img.decoding = "async";
 
-  section.append(heading, grid);
-  photoGrid.appendChild(section);
+      const fallback = document.createElement("span");
+      fallback.className = "photo-fallback";
+      fallback.textContent = "♡";
+      fallback.hidden = true;
+      fallback.setAttribute("aria-hidden", "true");
+
+      loadPhotoWithFallback(img, index, () => {
+        img.hidden = true;
+        fallback.hidden = false;
+      });
+
+      const tape = document.createElement("span");
+      tape.className = "photo-tape";
+      tape.setAttribute("aria-hidden", "true");
+      tile.append(img, fallback, tape);
+      tile.addEventListener("click", () => openPhoto(index, tile));
+      grid.appendChild(tile);
+    }
+
+    const pageBottom = document.createElement("div");
+    pageBottom.className = "scrapbook-page-bottom";
+    pageBottom.innerHTML = `<span class="scrapbook-doodle" aria-hidden="true">♡  ✿  ♡</span><span>${range.pagePart} / 2</span>`;
+
+    const navigation = document.createElement("div");
+    navigation.className = "scrapbook-page-navigation";
+    const previous = document.createElement("button");
+    previous.className = "text-button scrapbook-prev";
+    previous.type = "button";
+    previous.textContent = "← Previous page";
+    previous.addEventListener("click", () => showScrapbookPage(scrapbookPages.indexOf(section) - 1));
+
+    const next = document.createElement("button");
+    next.className = "primary-button scrapbook-nav-button";
+    next.type = "button";
+    next.textContent = "Turn the page →";
+    next.addEventListener("click", () => showScrapbookPage(scrapbookPages.indexOf(section) + 1));
+    navigation.append(previous, next);
+
+    section.append(pageTop, heading, note, grid, pageBottom, navigation);
+    photoGrid.appendChild(section);
+    scrapbookPages.push(section);
+  });
 });
 
+const scrapbookEnding = document.createElement("section");
+scrapbookEnding.className = "scrapbook-ending scrapbook-page";
+scrapbookEnding.hidden = true;
+scrapbookEnding.setAttribute("aria-label", "The last page of our scrapbook");
+scrapbookEnding.innerHTML = `
+  <span class="scrapbook-flower scrapbook-flower--left" aria-hidden="true">🌺</span>
+  <span class="scrapbook-flower scrapbook-flower--right" aria-hidden="true">🪷</span>
+  <p class="scrapbook-kicker">THE LAST PAGE, FOR NOW</p>
+  <div class="ending-heart" aria-hidden="true">♡</div>
+  <h2>And still, <em>my favorite</em> is you.</h2>
+  <p class="scrapbook-handwriting">If I could live these little moments all over again, I'd still want them with you.</p>
+  <div class="ending-stamp" aria-hidden="true">ALWAYS<br>YOUR CHOY ♡</div>
+  <p class="scrapbook-cover-note">Thank you for being my favorite part of the story, baba.</p>
+  <button class="primary-button scrapbook-nav-button" type="button" data-scrapbook-surprise>Continue to your little surprise →</button>
+  <button class="text-button scrapbook-prev" type="button" data-scrapbook-last-back>← Look at the last page again</button>
+`;
+photoGrid.appendChild(scrapbookEnding);
+
+let scrapbookCurrentPage = -1; // -1 is the cover; pages 0–5 are photo pages; 6 is the ending.
+function showScrapbookPage(pageIndex) {
+  scrapbookCurrentPage = Math.max(-1, Math.min(scrapbookPages.length, pageIndex));
+  scrapbookCover.hidden = scrapbookCurrentPage !== -1;
+  scrapbookPages.forEach((page, index) => {
+    page.hidden = index !== scrapbookCurrentPage;
+    page.classList.toggle("page-arriving", index === scrapbookCurrentPage);
+  });
+  scrapbookEnding.hidden = scrapbookCurrentPage !== scrapbookPages.length;
+  const finished = scrapbookCurrentPage === scrapbookPages.length;
+  document.getElementById("album").classList.toggle("scrapbook-finished", finished);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function resetScrapbook() {
+  if (!scrapbookCover || !scrapbookPages.length) return;
+  showScrapbookPage(-1);
+}
+
+scrapbookCover.querySelector("[data-scrapbook-next]").addEventListener("click", () => showScrapbookPage(0));
+scrapbookEnding.querySelector("[data-scrapbook-surprise]").addEventListener("click", () => showScreen("surprise"));
+scrapbookEnding.querySelector("[data-scrapbook-last-back]").addEventListener("click", () => showScrapbookPage(scrapbookPages.length - 1));
 // --------------------------------------------------
 // FULL-SCREEN PHOTO VIEWER
 // --------------------------------------------------
