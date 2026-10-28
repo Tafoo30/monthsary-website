@@ -45,7 +45,7 @@ const chapters = [
       "You are my home in ways I never expected another person could be. Not a place made of walls or a roof, but a feeling. A warmth that reaches me even on my coldest days. A blessing that came into my life and made ordinary things feel a little more meaningful. When life becomes too much, when my thoughts become too loud, or when I simply need someone to talk to, you are one of the people I want to turn to. You remind me that there is still gentleness in this world, that there are still people worth trusting with the most vulnerable parts of ourselves, and that love can feel like resting after a long, tiring day. And I'm so thankful that I have you gaa.",
       "And, of course, I cannot forget that you also have your dragon mode moments. (di nako mo dungag WAHHAAH). My soft-hearted, gentle girl who can suddenly become the fiercest creature alive when we're arguing or not in good terms. Sometimes, you really test my patience, and I'm sure I test yours, too. But even then, you're still you. You're still the girl I adore, the girl whose feelings matter to me, the girl I want to understand even when we're having a hard time understanding each other. Loving you doesn't mean I think you're perfect or that every moment between us will be easy. It means I love the whole of you, your softness, your strength, your moods, your laughter, your stubbornness, and all the little things that make you the person I fell in love with.",
       "If there's one thing I hope you never forget, it's that you don't have to do anything extraordinary just to deserve my love. You don't have to be happy all the time, strong all the time, or have everything figured out. You don't have to prove that you're worthy of being cared for. You are already someone worth loving simply because you are you. And if I could give you one thing, aside from all the love I have for you, it would be the ability to see yourself through my eyes, even just for a moment. Maybe then, you'd understand why I feel so lucky to have you, why I admire you so much, and why my heart continues to find its way back to you, baba.",
-      "Because, my love, you are so much more than someone I love. You are someone I am grateful to know, grateful to hold, grateful to laugh with, and grateful to share this life with. And every day that I get to call you mine is another day I find a new reason to be thankful for you." 
+      "Because, my palabalababab, you are so much more than someone I love. You are someone I am grateful to know, grateful to hold, grateful to laugh with, and grateful to share this life with. And every day that I get to call you mine is another day I find a new reason to be thankful for you." 
     ],
     signature: "You are everything to me. ♡"
   },
@@ -271,7 +271,7 @@ scrapbookCover.setAttribute("aria-label", "Scrapbook cover");
 scrapbookCover.innerHTML = `
   <span class="scrapbook-sticker scrapbook-sticker--top" aria-hidden="true">♡</span>
   <span class="scrapbook-flower scrapbook-flower--left" aria-hidden="true">🌺</span>
-  <span class="scrapbook-flower scrapbook-flower--right" aria-hidden="true">🪷</span>
+  <span class="scrapbook-flower scrapbook-flower--right" aria-hidden="true">🌸</span>
   <p class="scrapbook-kicker">A LITTLE BOOK OF US</p>
   <h2>Our little <em>forever</em></h2>
   <p class="scrapbook-handwriting">A hundred little moments, one favorite person.</p>
@@ -298,7 +298,7 @@ collections.forEach((collection, collectionIndex) => {
 
     const pageTop = document.createElement("div");
     pageTop.className = "scrapbook-page-top";
-    pageTop.innerHTML = `<span>J + C</span><span class="scrapbook-page-sparkle" aria-hidden="true">✧ ♡ ✧</span><span>KEPT WITH LOVE</span>`;
+    pageTop.innerHTML = `<span>Jirah + Klien</span><span class="scrapbook-page-sparkle" aria-hidden="true">✧ ♡ ✧</span><span>KEPT WITH LOVE</span>`;
 
     const heading = document.createElement("div");
     heading.className = "collection-heading";
@@ -395,8 +395,8 @@ scrapbookEnding.hidden = true;
 scrapbookEnding.setAttribute("aria-label", "The last page of our scrapbook");
 scrapbookEnding.innerHTML = `
   <span class="scrapbook-flower scrapbook-flower--left" aria-hidden="true">🌺</span>
-  <span class="scrapbook-flower scrapbook-flower--right" aria-hidden="true">🪷</span>
-  <p class="scrapbook-kicker">THE LAST PAGE, FOR NOW</p>
+  <span class="scrapbook-flower scrapbook-flower--right" aria-hidden="true">🌸</span>
+  <p class="scrapbook-kicker">HAPPY MONTHSARY TO US BOTH!!!</p>
   <div class="ending-heart" aria-hidden="true">♡</div>
   <h2>And still, <em>my favorite</em> is you.</h2>
   <p class="scrapbook-handwriting">If I could live these little moments all over again, I'd still want them with you.</p>
@@ -674,3 +674,21 @@ if (music && musicToggle) {
 
 // Start at the welcome screen.
 showScreen("welcome");
+
+
+
+/* ===== OPEN WHEN LETTERS ===== */
+
+document.querySelectorAll(".open-when-envelope").forEach((button) => {
+  button.addEventListener("click", () => {
+    const messageId = button.getAttribute("aria-controls");
+    const message = document.getElementById(messageId);
+
+    if (!message) return;
+
+    const isExpanded = button.getAttribute("aria-expanded") === "true";
+
+    button.setAttribute("aria-expanded", String(!isExpanded));
+    message.hidden = isExpanded;
+  });
+});
