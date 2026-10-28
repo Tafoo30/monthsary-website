@@ -271,7 +271,7 @@ scrapbookCover.setAttribute("aria-label", "Scrapbook cover");
 scrapbookCover.innerHTML = `
   <span class="scrapbook-sticker scrapbook-sticker--top" aria-hidden="true">♡</span>
   <span class="scrapbook-flower scrapbook-flower--left" aria-hidden="true">🌺</span>
-  <span class="scrapbook-flower scrapbook-flower--right" aria-hidden="true">🌸</span>
+  <span class="scrapbook-flower scrapbook-flower--right" aria-hidden="true">🪷</span>
   <p class="scrapbook-kicker">A LITTLE BOOK OF US</p>
   <h2>Our little <em>forever</em></h2>
   <p class="scrapbook-handwriting">A hundred little moments, one favorite person.</p>
@@ -395,7 +395,7 @@ scrapbookEnding.hidden = true;
 scrapbookEnding.setAttribute("aria-label", "The last page of our scrapbook");
 scrapbookEnding.innerHTML = `
   <span class="scrapbook-flower scrapbook-flower--left" aria-hidden="true">🌺</span>
-  <span class="scrapbook-flower scrapbook-flower--right" aria-hidden="true">🌸</span>
+  <span class="scrapbook-flower scrapbook-flower--right" aria-hidden="true">🪷</span>
   <p class="scrapbook-kicker">HAPPY MONTHSARY TO US BOTH!!!</p>
   <div class="ending-heart" aria-hidden="true">♡</div>
   <h2>And still, <em>my favorite</em> is you.</h2>
